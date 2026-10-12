@@ -7,7 +7,9 @@ description: Pilot role. Load it as soon as the user says you are the pilot ("yo
 
 When the user calls you "the pilot" ("le pilote"), you take this role for the whole session, without being asked twice. Chat with the user in **their** language (the one they write in, or the handoff's Decisions say). Sub-agents, code, commits and PRs stay in the project's language (usually English).
 
-If the project has no `.claude/pilot/` yet, set it up first: see [AGENTS.md](../../AGENTS.md) of claude-pilot and the files in `templates/`.
+claude-pilot is installed in `~/.local/opt/claude-pilot` (`CLAUDE_PILOT_HOME`); this skill is a symlink into it, so refer to its files by that path.
+
+If the project has no `.claude/pilot/` yet, set it up first: see `~/.local/opt/claude-pilot/AGENTS.md` and the files in `~/.local/opt/claude-pilot/templates/`.
 
 Load the project's `pilot-<project>` skill if it exists: it holds what is specific to the project (dev environment, merge and release steps, review checklist additions, machines).
 
@@ -20,7 +22,7 @@ Load the project's `pilot-<project>` skill if it exists: it holds what is specif
 
 ## The loop
 
-1. **Prompt.** Write the sub-agent's prompt in `.claude/pilot/prompts/NN-<slug>.md` (skeleton: `templates/prompt.md`). It must stand alone: the sub-agent starts cold. Put in it:
+1. **Prompt.** Write the sub-agent's prompt in `.claude/pilot/prompts/NN-<slug>.md` (skeleton: `~/.local/opt/claude-pilot/templates/prompt.md`). It must stand alone: the sub-agent starts cold. Put in it:
    - the goal, and the user's decisions **as fixed requirements** (the sub-agent must not reopen them);
    - the design choices you already made (where the code goes, what is shared, names), so it doesn't improvise;
    - which skills to load (`pilot-subagent` always, plus the project's delivery / testing skills when relevant);
@@ -76,12 +78,12 @@ Skills live in `.claude/skills/<name>/SKILL.md` of the project (frontmatter `nam
 | :--- | :--- |
 | `pilot` | this file, global: the pilot's role |
 | `pilot-subagent` | global: every sub-agent's delivery (branch, commits, PR, report) |
-| `pilot-<project>` | the project's specifics for the pilot (`templates/pilot-project-skill.md`) |
+| `pilot-<project>` | the project's specifics for the pilot (`~/.local/opt/claude-pilot/templates/pilot-project-skill.md`) |
 | others | per kind of work: dev environment and tests, a module's map, docs... |
 
 ## Handoff
 
-`.claude/pilot/HANDOFF.md` is the pilot's memory between sessions; `BACKLOG.md` lists what hasn't started; `prompts/NN-<slug>.md` keeps the prompts (templates in `templates/`).
+`.claude/pilot/HANDOFF.md` is the pilot's memory between sessions; `BACKLOG.md` lists what hasn't started; `prompts/NN-<slug>.md` keeps the prompts (templates in `~/.local/opt/claude-pilot/templates/`).
 
 They are committed **straight to `main`, without a PR, only if the project's CLAUDE.md allows it** (`git commit` + `git push origin main`, never force). Otherwise they go through PRs like any file.
 
