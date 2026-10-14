@@ -21,6 +21,7 @@ Un pilote, un agent qui relit ton travail et boucle avec toi, t'a confié une t�
 
 Chaque refus coûte un aller-retour.
 - Lance les étapes git en commandes séparées plutôt qu'en une longue chaîne `&&`. Le bac à sable refuse les commandes « trop complexes » : expansion d'accolades, `git` mêlé à `&&`, `;`, un heredoc ou `python3 -`, `git` / `gh` / `sed` avec des variables shell. Écris les scripts de plusieurs lignes et les modifications de fichiers avec les outils Write / Edit.
+- Write et Edit refusent un fichier existant que l'outil Read n'a pas lu dans la session (un `cat` en Bash ne compte pas) : avant de réécrire des fichiers entiers (une traduction par exemple), fais un Read de chacun (`limit: 1` suffit).
 - Ne mentionne jamais un chemin hors de ton worktree (pas de fichiers temporaires `/tmp/...`, pas de `export PATH=/home/...`) : garde les fichiers temporaires dans un dossier de ton worktree ignoré par git. Un outil introuvable : essaie son chemin complet (`~/.local/bin/<outil>`).
 - `gh pr create` avec un long `--body "..."` en ligne est refusé comme trop complexe : écris la description avec Write, puis utilise `--body-file <fichier de ton worktree>`.
 - `git add <les fichiers>` plutôt que `git add -A` (lent quand l'arbre contient de l'état d'exécution).
