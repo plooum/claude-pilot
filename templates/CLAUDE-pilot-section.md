@@ -1,6 +1,6 @@
-# Lines to add to the project's CLAUDE.md
+# Lignes à ajouter au CLAUDE.md du projet
 
-Adapt, then paste.
+Adapte, puis colle.
 
 ```markdown
 ## Git workflow
@@ -14,4 +14,4 @@ When the user tells an agent it is **the pilot** ("you are the pilot"), it takes
 Project skills live in `.claude/skills/`. Sub-agents load them when their description matches.
 ```
 
-The part between `<...>` is the **optional exception**: keep it only if the owner allows the pilot's files (`.claude/pilot/`) to go straight on `main`. Without it, they go through PRs like any file. If the project uses the agent board, add: "Sub-agents are followed on the agent board (https://github.com/plooum/agent-board); load the `agent-board` skill before launching them."
+La partie entre `<...>` est l'**exception facultative** : garde-la seulement si le propriétaire autorise les fichiers du pilote (`.claude/pilot/`) à aller directement sur `main`. Sans elle, ils passent par des PR comme n'importe quel fichier. Si le projet utilise le tableau des agents, ajoute : « Sub-agents are followed on the agent board (https://github.com/plooum/agent-board); load the `agent-board` skill before launching them. »

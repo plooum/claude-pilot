@@ -1,17 +1,17 @@
 # Backlog
 
-What is left to do, kept by the pilot. The handoff's **State** tracks work in progress; this file lists what hasn't started. When an item starts, move it to the handoff's State; when it's merged, delete it here.
+Ce qu'il reste à faire, tenu par le pilote. L'**État** du handoff suit le travail en cours ; ce fichier liste ce qui n'a pas commencé. Quand un élément démarre, déplace-le dans l'État du handoff ; quand il est fusionné, supprime-le ici.
 
-_Last update: <date>._
+_Dernière mise à jour : <date>._
 
-## Waiting on the user
+## En attente de l'utilisateur
 
-Nothing.
+Rien.
 
-## Next
+## Suite
 
-- [ ] <item>
+- [ ] <élément>
 
-## Dropped
+## Abandonné
 
-- <date>: <item and why>
+- <date> : <élément et pourquoi>

@@ -1,38 +1,38 @@
 ---
 name: pilot-<project>
-description: <Project>'s specifics for the pilot - dev environment, merge and release steps, review checklist additions, machines. Load it together with the `pilot` skill when you are the pilot of <project>.
+description: Spécificités de <Projet> pour le pilote (<Project>'s specifics for the pilot) - environnement de dev, étapes de merge et de release, ajouts à la checklist de relecture, machines. À charger avec le skill `pilot` quand tu es le pilote de <projet> (you are the pilot of <project>).
 ---
 
-# Pilot of <project>
+# Pilote de <projet>
 
-Complements the global `pilot` skill with what is specific to this project. Keep it short and factual.
+Complète le skill global `pilot` avec ce qui est propre à ce projet. Reste court et factuel.
 
-## Dev environment
+## Environnement de dev
 
-- Start / check / stop: `<commands>`. Check it at the start of the session.
-- Per worktree: what a sub-agent needs of its own (port, dependencies linked, build step), and how it stops it when done.
-- Parallelism: how many sub-agents at a time on each machine, and why.
+- Démarrer / vérifier / arrêter : `<commandes>`. Vérifie-le au début de la session.
+- Par worktree : ce dont un sous-agent a besoin en propre (port, dépendances liées, étape de build), et comment il l'arrête quand il a fini.
+- Parallélisme : combien de sous-agents à la fois sur chaque machine, et pourquoi.
 
-## Review checklist (additions)
+## Checklist de relecture (ajouts)
 
-- <project-specific item: e.g. docs in two languages, a version file not bumped in a feature PR, generated files not committed>
+- <élément propre au projet : par ex. docs en deux langues, un fichier de version non incrémenté dans une PR de fonctionnalité, fichiers générés non commités>
 
 ## Merge
 
-1. <Rebase rule: when `main` moved, what to ignore (e.g. only the pilot's files).>
-2. <Merge command and subject format, e.g. `gh pr merge <N> --squash --delete-branch`.>
-3. <After: clean the worktree, stop its dev environment, check CI on `main`.>
+1. <Règle de rebase : quand `main` a bougé, ce qu'il faut ignorer (par ex. seulement les fichiers du pilote).>
+2. <Commande de merge et format du sujet, par ex. `gh pr merge <N> --squash --delete-branch`.>
+3. <Ensuite : nettoyer le worktree, arrêter son environnement de dev, vérifier la CI sur `main`.>
 
 ## Releases
 
-<Tag naming and semver rules, who publishes, release notes language, what CI attaches.>
+<Nom des tags et règles semver, qui publie, langue des notes de release, ce que la CI attache.>
 
 ## Machines
 
-<Name: RAM, cores, tool locations (`~/.local/bin`...). Mirrors the handoff's Machines section.>
+<Nom : RAM, cœurs, emplacement des outils (`~/.local/bin`...). Reprend la section Machines du handoff.>
 
-## Skills of the project
+## Skills du projet
 
-| Skill | For |
+| Skill | Pour |
 | :--- | :--- |
-| `<delivery / testing skill>` | <when to load it> |
+| `<skill de livraison / de test>` | <quand le charger> |
