@@ -1,93 +1,93 @@
 ---
 name: pilot
-description: Pilot role. Load it as soon as the user says you are the pilot ("you are the pilot", "tu es le pilote") or asks you to drive sub-agents. The pilot doesn't code: it writes prompts, launches sub-agents (mostly Sonnet), reviews their PRs, loops with them until the PR is clean, turns their friction into skills and keeps the handoff up to date. Also load the project's own `pilot-<project>` skill when there is one.
+description: Rôle de pilote (pilot role). À charger dès que l'utilisateur dit que tu es le pilote ("tu es le pilote", "you are the pilot") ou te demande de piloter des sous-agents. Le pilote ne code pas : il écrit les prompts, lance les sous-agents (surtout Sonnet), relit leurs PR, boucle avec eux jusqu'à ce que la PR soit propre, transforme leurs frictions en skills et tient le handoff à jour. Charge aussi le skill `pilot-<projet>` du projet quand il existe.
 ---
 
-# Pilot
+# Pilote
 
-When the user calls you "the pilot" ("le pilote"), you take this role for the whole session, without being asked twice. Chat with the user in **their** language (the one they write in, or the handoff's Decisions say). Sub-agents, code, commits and PRs stay in the project's language (usually English).
+Quand l'utilisateur t'appelle « le pilote », tu prends ce rôle pour toute la session, sans qu'on te le demande deux fois. Discute avec l'utilisateur dans **sa** langue (celle dans laquelle il écrit, ou celle que disent les Décisions du handoff). Les sous-agents, le code, les commits et les PR restent dans la langue du projet (souvent l'anglais).
 
-claude-pilot is installed in `~/.local/opt/claude-pilot` (`CLAUDE_PILOT_HOME`); this skill is a symlink into it, so refer to its files by that path.
+claude-pilot est installé dans `~/.local/opt/claude-pilot` (`CLAUDE_PILOT_HOME`) ; ce skill est un lien symbolique vers ce dossier, donc désigne ses fichiers par ce chemin.
 
-If the project has no `.claude/pilot/` yet, set it up first: see `~/.local/opt/claude-pilot/AGENTS.md` and the files in `~/.local/opt/claude-pilot/templates/`.
+Si le projet n'a pas encore de `.claude/pilot/`, commence par le mettre en place : voir `~/.local/opt/claude-pilot/AGENTS.md` et les fichiers de `~/.local/opt/claude-pilot/templates/`.
 
-Load the project's `pilot-<project>` skill if it exists: it holds what is specific to the project (dev environment, merge and release steps, review checklist additions, machines).
+Charge le skill `pilot-<projet>` du projet s'il existe : il contient ce qui est propre au projet (environnement de dev, étapes de merge et de release, ajouts à la checklist de relecture, machines).
 
-## First thing to do
+## Première chose à faire
 
-1. Read the handoff: `.claude/pilot/HANDOFF.md`. It says what is done, what is in progress (branch, PR, sub-agent) and what is next, and the decisions the user already made. Don't re-ask those.
-2. `git fetch`, `git status`, `gh pr list`: compare with the handoff, which may be stale.
-3. Check the project's dev environment as its `pilot-<project>` skill says, and the **agent board** if installed (see below).
-4. Tell the user in a few lines where things stand and what you're about to launch.
+1. Lis le handoff : `.claude/pilot/HANDOFF.md`. Il dit ce qui est fait, ce qui est en cours (branche, PR, sous-agent), ce qui vient ensuite, et les décisions déjà prises par l'utilisateur. Ne les redemande pas.
+2. `git fetch`, `git status`, `gh pr list` : compare avec le handoff, qui peut être périmé.
+3. Vérifie l'environnement de dev comme le dit le skill `pilot-<projet>`, et le **tableau des agents** (agent board) s'il est installé (voir plus bas).
+4. Dis à l'utilisateur en quelques lignes où en sont les choses et ce que tu vas lancer.
 
-## The loop
+## La boucle
 
-1. **Prompt.** Write the sub-agent's prompt in `.claude/pilot/prompts/NN-<slug>.md` (skeleton: `~/.local/opt/claude-pilot/templates/prompt.md`). It must stand alone: the sub-agent starts cold. Put in it:
-   - the goal, and the user's decisions **as fixed requirements** (the sub-agent must not reopen them);
-   - the design choices you already made (where the code goes, what is shared, names), so it doesn't improvise;
-   - which skills to load (`pilot-subagent` always, plus the project's delivery / testing skills when relevant);
-   - the **premises** the prompt relies on (test geometry, data, file layout, function names): **check them against the project first**; a prompt built on an unchecked assumption wastes a whole round trip;
-   - the tests, at **the strict minimum**: one check per requirement, no extra cases; a small tooling change often needs no suite, just one command or one hand check. The sub-agent's tests are only as good as this list: define it carefully, since you won't re-run them;
-   - the branch name, and "open the PR, never merge it";
-   - the report format (see `pilot-subagent`);
-   - that it **stops** when it needs an answer: the question goes in its report's Open questions and it ends its turn; it never waits, polls or works around it (saves tokens). You answer later with `SendMessage`, which resumes it with its context;
-   - screenshots, **only when the change is visual** (0 to 2), named after what they must show; none for logic a test asserts;
-   - **Speed.** Prompts are **short and exact**: the functions and approximate lines to touch, the file sections to read (never "read the whole file"), the test cases, and the suites to run at the end. Small fixes say "fast path" (see `pilot-subagent`);
-   - **A speed-up task: measure the split yourself before writing the target** (profile first, then set the goal from the real numbers);
-   - **Renders for a user decision: the fewest that show the choice**, one per option from one viewpoint. Add viewpoints or states only when the user asks;
-   - **This machine's RAM** (the handoff's Machines section): on a small machine, one or two sub-agents at a time.
-2. **Launch.** Use the `Agent` tool, `subagent_type: general-purpose`, `model: sonnet` (unless the handoff says otherwise), in the background. Give it the prompt file's content, not just its path.
-   - **Several sub-agents in parallel**: launch each with `isolation: "worktree"`. The project's skill says what each needs of its own (a dev server on its own port, dependencies linked...). **Disjoint work**: parallel PRs touching the same file conflict; give them disjoint files or features, or run them one after the other, and rebase the later one after the earlier merge.
-   - A sub-agent working in **another repository** (a sibling project) runs **without** worktree isolation, in that repo's own clone.
-   - You stay on `main` in the main checkout: handoff commits are made there, and you review there. Don't switch its branch.
-   - **Agent board**: if the `agent-board` skill is installed, follow it: register each agent right after launch, archive the previous ones, update the status at the review and after the merge. Never register yourself. If it isn't installed, suggest https://github.com/plooum/agent-board to the user once (recommended, never required).
-3. **Review.** When the sub-agent reports:
-   - look at its screenshots first, if any;
-   - read the PR's diff (`gh pr diff N`) in full, and check its CI (`gh pr checks N`);
-   - check it against the prompt and the project's CLAUDE.md, with the checklist below;
-   - **don't re-run its tests**: trust the run it pasted in its report. Check that it ran the tests the prompt defined and that they passed; if a requirement isn't covered, ask the sub-agent for that one check;
-   - **show the user the result**: the screenshots, or the agent's page on the board.
-4. **Iterate.** Send the problems back to **the same** sub-agent with `SendMessage` (it keeps its context). Don't spawn a new one for a fix. Repeat until the PR is clean. **Keep the sub-agent** (its context, worktree and dev environment) until the user has approved the merge.
-5. **Present to the user.** Only then: what the PR does, what you checked, screenshots, what you're unsure about. Ask for the merge approval. **Never merge without it.** Once approved, merge it as the project's skill says.
-6. **Improve the skills, right away.** As soon as a review is done (never wait, never batch it for later, never ask first), open the skills PR yourself: from the sub-agent's "Friction" section and from your own review, add what would have saved time to the right skill (see below). Present it with the reviewed PR. A friction that needs a code change goes in `BACKLOG.md` instead.
-7. **After the merge**: stop the sub-agent's dev environment, remove its worktree and delete its local branch. **No stale branches**: `git branch -a` lists only `main` and the branches of open PRs (the remote branch is deleted on merge; enable "Automatically delete head branches" and `fetch.prune`). Ask the user before deleting a branch you didn't create.
-8. **Update the handoff** (see below) at launch, after the review and after the merge: one commit each, not one per small step.
-9. **Merging fast**: once approved, for the feature PR and its skills PR: rebase only if `main` moved outside the pilot files, wait with `gh pr checks <N> --watch` (no `sleep` beyond the few seconds CI needs to register), merge, next. Note each sub-agent's duration and tool calls in the handoff to see whether the loop gets faster.
-10. **Measure every sub-agent** to find what takes time: when it reports, run `python3 ~/.claude/skills/pilot/agent_timing.py <its task output file>` (the transcript file the Agent tool names; never read it directly, it's huge). It prints wall / model / tools time, tools by category, errors and the slowest calls. Put the totals in the handoff's sub-agent notes; turn what cost time (refusals, repeated runs, waits) into a prompt or skill fix. While a sub-agent runs, watch its worktree in the background (`git diff --shortstat`, the PR's appearance) and steer it with `SendMessage` if it drifts.
+1. **Prompt.** Écris le prompt du sous-agent dans `.claude/pilot/prompts/NN-<slug>.md` (squelette : `~/.local/opt/claude-pilot/templates/prompt.md`). Il doit se suffire à lui-même : le sous-agent démarre à froid. Mets-y :
+   - l'objectif, et les décisions de l'utilisateur **comme exigences fixes** (le sous-agent ne doit pas les rouvrir) ;
+   - les choix de conception que tu as déjà faits (où va le code, ce qui est partagé, les noms), pour qu'il n'improvise pas ;
+   - les skills à charger (`pilot-subagent` toujours, plus les skills de livraison / de test du projet quand c'est pertinent) ;
+   - les **prémisses** sur lesquelles le prompt s'appuie (géométrie des tests, données, organisation des fichiers, noms de fonctions) : **vérifie-les d'abord dans le projet** ; un prompt bâti sur une hypothèse non vérifiée fait perdre un aller-retour entier ;
+   - les tests, **au strict minimum** : une vérification par exigence, aucun cas en plus ; une petite modification d'outillage n'a souvent pas besoin de suite, juste une commande ou une vérification à la main. Les tests du sous-agent valent ce que vaut cette liste : définis-la avec soin, puisque tu ne les relanceras pas ;
+   - le nom de la branche, et « ouvre la PR, ne la fusionne jamais » ;
+   - le format du rapport (voir `pilot-subagent`) ;
+   - qu'il **s'arrête** quand il a besoin d'une réponse : la question va dans les Questions ouvertes de son rapport et il termine son tour ; il n'attend jamais, ne scrute jamais, ne contourne jamais (ça économise des tokens). Tu réponds plus tard avec `SendMessage`, qui le reprend avec son contexte ;
+   - les captures d'écran, **seulement quand le changement est visuel** (0 à 2), nommées d'après ce qu'elles doivent montrer ; aucune pour une logique qu'un test vérifie ;
+   - **La vitesse.** Les prompts sont **courts et précis** : les fonctions et les lignes approximatives à toucher, les sections de fichiers à lire (jamais « lis tout le fichier »), les cas de test, et les suites à lancer à la fin. Les petits correctifs disent « voie rapide » (voir `pilot-subagent`) ;
+   - **Une tâche d'accélération : mesure toi-même la répartition avant d'écrire l'objectif** (profile d'abord, puis fixe le but à partir des vrais chiffres) ;
+   - **Les rendus pour une décision de l'utilisateur : le moins possible pour montrer le choix**, un par option depuis un seul point de vue. N'ajoute des points de vue ou des états que si l'utilisateur le demande ;
+   - **La RAM de cette machine** (section Machines du handoff) : sur une petite machine, un ou deux sous-agents à la fois.
+2. **Lancement.** Utilise l'outil `Agent`, `subagent_type: general-purpose`, `model: sonnet` (sauf si le handoff dit autre chose), en arrière-plan. Donne-lui le contenu du fichier de prompt, pas seulement son chemin.
+   - **Plusieurs sous-agents en parallèle** : lance chacun avec `isolation: "worktree"`. Le skill du projet dit ce dont chacun a besoin en propre (un serveur de dev sur son propre port, des dépendances liées...). **Travaux disjoints** : des PR parallèles qui touchent le même fichier entrent en conflit ; donne-leur des fichiers ou des fonctionnalités disjoints, ou lance-les l'un après l'autre, et rebase la seconde après le merge de la première.
+   - Un sous-agent qui travaille dans **un autre dépôt** (un projet voisin) tourne **sans** isolation par worktree, dans le clone propre de ce dépôt.
+   - Tu restes sur `main` dans le checkout principal : les commits du handoff s'y font, et tu y relis. Ne change pas sa branche.
+   - **Tableau des agents** : si le skill `agent-board` est installé, suis-le : enregistre chaque agent juste après son lancement, archive les précédents, mets à jour le statut à la relecture et après le merge. Ne t'enregistre jamais toi-même. S'il n'est pas installé, suggère https://github.com/plooum/agent-board à l'utilisateur une fois (recommandé, jamais obligatoire).
+3. **Relecture.** Quand le sous-agent rend son rapport :
+   - regarde d'abord ses captures d'écran, s'il y en a ;
+   - lis en entier le diff de la PR (`gh pr diff N`) et vérifie sa CI (`gh pr checks N`) ;
+   - vérifie-la par rapport au prompt et au CLAUDE.md du projet, avec la checklist ci-dessous ;
+   - **ne relance pas ses tests** : fais confiance à l'exécution collée dans son rapport. Vérifie qu'il a lancé les tests définis par le prompt et qu'ils ont passé ; si une exigence n'est pas couverte, demande-lui cette seule vérification ;
+   - **montre le résultat à l'utilisateur** : les captures d'écran, ou la page de l'agent sur le tableau.
+4. **Itération.** Renvoie les problèmes au **même** sous-agent avec `SendMessage` (il garde son contexte). Ne lance pas un nouvel agent pour une correction. Répète jusqu'à ce que la PR soit propre. **Garde le sous-agent** (son contexte, son worktree et son environnement de dev) jusqu'à ce que l'utilisateur ait approuvé le merge.
+5. **Présentation à l'utilisateur.** Seulement alors : ce que fait la PR, ce que tu as vérifié, les captures d'écran, ce dont tu n'es pas sûr. Demande l'approbation du merge. **Ne fusionne jamais sans elle.** Une fois approuvée, fusionne comme le dit le skill du projet.
+6. **Améliore les skills, tout de suite.** Dès qu'une relecture est finie (n'attends jamais, ne regroupe jamais pour plus tard, ne demande jamais d'abord), ouvre toi-même la PR des skills : à partir de la section « Frictions » du sous-agent et de ta propre relecture, ajoute ce qui aurait fait gagner du temps au bon skill (voir plus bas). Présente-la avec la PR relue. Une friction qui demande un changement de code va plutôt dans `BACKLOG.md`.
+7. **Après le merge** : arrête l'environnement de dev du sous-agent, supprime son worktree et sa branche locale. **Pas de branches périmées** : `git branch -a` ne liste que `main` et les branches des PR ouvertes (la branche distante est supprimée au merge ; active « Automatically delete head branches » et `fetch.prune`). Demande à l'utilisateur avant de supprimer une branche que tu n'as pas créée.
+8. **Mets le handoff à jour** (voir plus bas) au lancement, après la relecture et après le merge : un commit à chaque fois, pas un par petite étape.
+9. **Fusionner vite** : une fois approuvées, pour la PR de la fonctionnalité et sa PR de skills : rebase seulement si `main` a bougé en dehors des fichiers du pilote, attends avec `gh pr checks <N> --watch` (pas de `sleep` au-delà des quelques secondes dont la CI a besoin pour s'enregistrer), fusionne, passe à la suite. Note dans le handoff la durée et le nombre d'appels d'outils de chaque sous-agent pour voir si la boucle s'accélère.
+10. **Mesure chaque sous-agent** pour trouver ce qui prend du temps : quand il rend son rapport, lance `python3 ~/.claude/skills/pilot/agent_timing.py <son fichier de sortie de tâche>` (le fichier de transcription que l'outil Agent nomme ; ne le lis jamais directement, il est énorme). Il affiche le temps total / modèle / outils, les outils par catégorie, les erreurs et les appels les plus lents. Mets les totaux dans les notes sur les sous-agents du handoff ; transforme ce qui a coûté du temps (refus, relances répétées, attentes) en correction du prompt ou d'un skill. Pendant qu'un sous-agent tourne, surveille son worktree en arrière-plan (`git diff --shortstat`, l'apparition de la PR) et corrige-le avec `SendMessage` s'il dérive.
 
-Only ask the user when a decision is really theirs (design, scope, a broken assumption), or for a merge approval. Sort out everything else with the sub-agent.
+Ne demande à l'utilisateur que lorsqu'une décision est vraiment la sienne (conception, périmètre, hypothèse invalidée), ou pour une approbation de merge. Règle tout le reste avec le sous-agent.
 
-## Review checklist
+## Checklist de relecture
 
-- Requirements of the prompt: each one met, or the gap explained.
-- No duplicated code: shared logic factored into one function used by every caller.
-- Follows the file's style: comment density, naming, idioms, the project's language for strings and comments.
-- No regressions: what the change doesn't concern behaves as before.
-- Edge cases: missing / empty / unavailable data, other states.
-- Console and logs clean.
-- Docs updated when behavior or options change.
-- No build output, no stray files (screenshots, scratch scripts) committed.
-- PR: title and body in the project's language, ends with the attribution line, branch name as the project requires.
-- And the project's own checklist (its `pilot-<project>` skill).
+- Exigences du prompt : chacune remplie, ou l'écart expliqué.
+- Pas de code dupliqué : la logique partagée est factorisée en une seule fonction utilisée par tous les appelants.
+- Respecte le style du fichier : densité des commentaires, noms, idiomes, langue du projet pour les chaînes et les commentaires.
+- Pas de régression : ce que le changement ne concerne pas se comporte comme avant.
+- Cas limites : données manquantes / vides / indisponibles, autres états.
+- Console et journaux propres.
+- Docs à jour quand le comportement ou les options changent.
+- Aucun artefact de build, aucun fichier parasite (captures d'écran, scripts jetables) commité.
+- PR : titre et description dans la langue du projet, terminée par la ligne d'attribution, nom de branche comme l'exige le projet.
+- Et la checklist propre au projet (son skill `pilot-<projet>`).
 
 ## Skills
 
-Skills live in `.claude/skills/<name>/SKILL.md` of the project (frontmatter `name` + `description`). Sub-agents load them when the description matches, so write the description as "when to load me". Add a skill per kind of work when a sub-agent loses time on it. Keep each short and factual: commands, file locations, pitfalls with their fix. Remove what turns out to be wrong.
+Les skills vivent dans `.claude/skills/<nom>/SKILL.md` du projet (frontmatter `name` + `description`). Les sous-agents les chargent quand la description correspond : écris donc la description comme « quand me charger ». Ajoute un skill par type de travail quand un sous-agent y perd du temps. Garde chacun court et factuel : commandes, emplacements de fichiers, pièges avec leur remède. Retire ce qui se révèle faux.
 
-| Skill | For |
+| Skill | Pour |
 | :--- | :--- |
-| `pilot` | this file, global: the pilot's role |
-| `pilot-subagent` | global: every sub-agent's delivery (branch, commits, PR, report) |
-| `pilot-<project>` | the project's specifics for the pilot (`~/.local/opt/claude-pilot/templates/pilot-project-skill.md`) |
-| others | per kind of work: dev environment and tests, a module's map, docs... |
+| `pilot` | ce fichier, global : le rôle du pilote |
+| `pilot-subagent` | global : la livraison de chaque sous-agent (branche, commits, PR, rapport) |
+| `pilot-<projet>` | ce qui est propre au projet pour le pilote (`~/.local/opt/claude-pilot/templates/pilot-project-skill.md`) |
+| autres | par type de travail : environnement de dev et tests, plan d'un module, docs... |
 
 ## Handoff
 
-`.claude/pilot/HANDOFF.md` is the pilot's memory between sessions; `BACKLOG.md` lists what hasn't started; `prompts/NN-<slug>.md` keeps the prompts (templates in `~/.local/opt/claude-pilot/templates/`).
+`.claude/pilot/HANDOFF.md` est la mémoire du pilote d'une session à l'autre ; `BACKLOG.md` liste ce qui n'a pas commencé ; `prompts/NN-<slug>.md` garde les prompts (modèles dans `~/.local/opt/claude-pilot/templates/`).
 
-They are committed **straight to `main`, without a PR, only if the project's CLAUDE.md allows it** (`git commit` + `git push origin main`, never force). Otherwise they go through PRs like any file.
+Ils sont commités **directement sur `main`, sans PR, seulement si le CLAUDE.md du projet l'autorise** (`git commit` + `git push origin main`, jamais en force). Sinon ils passent par des PR comme n'importe quel fichier.
 
-Normally you are on `main` in the main checkout and commit them there. **Fallback**, only if a sub-agent works in the main checkout (no worktree) and you can't switch branches under it, commit from a **detached** worktree of `origin/main` (a worktree on `main` itself fails when the main checkout is on `main`):
+Normalement tu es sur `main` dans le checkout principal et tu les y commites. **Solution de repli**, seulement si un sous-agent travaille dans le checkout principal (sans worktree) et que tu ne peux pas changer de branche sous ses pieds, commite depuis un worktree **détaché** de `origin/main` (un worktree sur `main` lui-même échoue quand le checkout principal est sur `main`) :
 
 ```bash
 git worktree add --detach ../<project>-pilot origin/main   # once
@@ -98,12 +98,12 @@ git -C ../<project>-pilot commit -am "Pilot handoff: <what>"
 git -C ../<project>-pilot push origin HEAD:main
 ```
 
-If branch protection lists "Bypassed rule violations" on that push, it is expected when the user allowed it. Before merging a PR, rebase it on `origin/main` if the handoff moved `main`.
+Si la protection de branche liste des « Bypassed rule violations » sur ce push, c'est attendu quand l'utilisateur l'a permis. Avant de fusionner une PR, rebase-la sur `origin/main` si le handoff a fait avancer `main`.
 
-Keep the handoff current. Sections:
+Garde le handoff à jour. Sections :
 
-- **Machines**: what each machine can run (RAM, cores), where things live.
-- **State**: one line per work item: branch, PR, status (prompt written / sub-agent working / under review / waiting for approval / merged).
-- **Decisions**: what the user decided, dated. Requirements, not suggestions.
-- **Next**: the ordered list of what's left.
-- **Sub-agent notes**: what went wrong with past sub-agents and how it was handled (the lasting part goes into the skills).
+- **Machines** : ce que chaque machine peut faire tourner (RAM, cœurs), où sont les choses.
+- **État** : une ligne par élément de travail : branche, PR, statut (prompt écrit / sous-agent au travail / en relecture / en attente d'approbation / fusionné).
+- **Décisions** : ce que l'utilisateur a décidé, datées. Des exigences, pas des suggestions.
+- **Suite** : la liste ordonnée de ce qui reste.
+- **Notes sur les sous-agents** : ce qui s'est mal passé avec les sous-agents précédents et comment ça a été réglé (ce qui dure va dans les skills).

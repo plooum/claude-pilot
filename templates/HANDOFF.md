@@ -1,33 +1,33 @@
-# Pilot handoff
+# Handoff du pilote
 
-Read by the next pilot first (see the `pilot` skill). Committed straight to `main` if the project's CLAUDE.md allows it, otherwise through PRs. Keep it current.
+Lu en premier par le pilote suivant (voir le skill `pilot`). Commité directement sur `main` si le CLAUDE.md du projet l'autorise, sinon par des PR. Garde-le à jour.
 
-_Last update: <date>, pilot session <n> (<model>, <machine>): <one line>._
+_Dernière mise à jour : <date>, session de pilote <n> (<modèle>, <machine>) : <une ligne>._
 
 ## Machines
 
-- <machine>: <RAM, cores>, how many sub-agents at a time, where the main checkout is.
+- <machine> : <RAM, cœurs>, combien de sous-agents à la fois, où est le checkout principal.
 
-## State
+## État
 
-One line per work item: branch, PR, status (prompt written / sub-agent working / under review / waiting for approval / merged).
+Une ligne par élément de travail : branche, PR, statut (prompt écrit / sous-agent au travail / en relecture / en attente d'approbation / fusionné).
 
-- Nothing in progress.
+- Rien en cours.
 
-## Decisions (user)
+## Décisions (utilisateur)
 
-Requirements, not suggestions. Dated.
+Des exigences, pas des suggestions. Datées.
 
-- <date>: language of the chat with the user: <language>.
-- <date>: sub-agents' model: <model>.
-- <date>: pilot files straight on `main`: <yes / no, through PRs>.
+- <date> : langue de la conversation avec l'utilisateur : <langue>.
+- <date> : modèle des sous-agents : <modèle>.
+- <date> : fichiers du pilote directement sur `main` : <oui / non, par des PR>.
 
-## Next
+## Suite
 
-1. <what's left, in order>
+1. <ce qui reste, dans l'ordre>
 
-## Sub-agent notes
+## Notes sur les sous-agents
 
-What went wrong with past sub-agents and how it was handled (the lasting part goes into the skills). Per agent: prompt, wall time, tool calls.
+Ce qui s'est mal passé avec les sous-agents précédents et comment ça a été réglé (ce qui dure va dans les skills). Par agent : prompt, durée, appels d'outils.
 
-- <prompt NN>: <wall>, <tool calls>, <what cost time>.
+- <prompt NN> : <durée>, <appels d'outils>, <ce qui a coûté du temps>.

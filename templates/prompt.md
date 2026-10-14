@@ -1,24 +1,24 @@
-# Prompt NN: <slug>
+# Prompt NN : <slug>
 
-You work in **`<path of the checkout or worktree>`** on branch **`feature/<name>`**, off an up-to-date `main`. Load the skills: `pilot-subagent`, <the project's delivery / testing skills>. <Project-specific rules that apply, in one line.> Open the PR, never merge it. A question you can't settle: stop and report it (Open questions), don't wait.
+Tu travailles dans **`<chemin du checkout ou du worktree>`** sur la branche **`feature/<nom>`**, à partir d'un `main` à jour. Charge les skills : `pilot-subagent`, <les skills de livraison / de test du projet>. <Règles propres au projet qui s'appliquent, en une ligne.> Ouvre la PR, ne la fusionne jamais. Une question que tu ne peux pas trancher : arrête-toi et signale-la (Questions ouvertes), n'attends pas.
 
-## Goal
+## Objectif
 
-<What and why, a few lines. The user's decisions below are **fixed requirements**; don't reopen them.>
+<Quoi et pourquoi, quelques lignes. Les décisions de l'utilisateur ci-dessous sont des **exigences fixes** ; ne les rouvre pas.>
 
-- <decision 1 (user, date)>
-- <decision 2>
+- <décision 1 (utilisateur, date)>
+- <décision 2>
 
-## Design (fixed)
+## Conception (fixe)
 
-<Where the code goes, which functions and approximate lines to touch, what is shared, names. The sections of files to read (never "read the whole file"). Premises you checked against the project.>
+<Où va le code, quelles fonctions et quelles lignes approximatives toucher, ce qui est partagé, les noms. Les sections de fichiers à lire (jamais « lis tout le fichier »). Les prémisses que tu as vérifiées dans le projet.>
 
-## Checks (strict minimum)
+## Vérifications (strict minimum)
 
-<One check per requirement, no extra cases; or "no suite: one command / one hand check". Which tests to write (file, test names, what each asserts) and which to run at the end, once. "Fast path" for a one-function fix.>
+<Une vérification par exigence, aucun cas en plus ; ou « pas de suite : une commande / une vérification à la main ». Quels tests écrire (fichier, noms des tests, ce que chacun vérifie) et lesquels lancer à la fin, une seule fois. « Voie rapide » pour un correctif d'une fonction.>
 
-Screenshots: <none | the 1-2 that must show X and Y>.
+Captures d'écran : <aucune | les 1-2 qui doivent montrer X et Y>.
 
-## Delivery
+## Livraison
 
-PR "<title>" on `feature/<name>`. Open it, never merge. Report in the `pilot-subagent` format. Friction matters.
+PR « <titre> » sur `feature/<nom>`. Ouvre-la, ne la fusionne jamais. Rapport au format de `pilot-subagent`. Les frictions comptent.

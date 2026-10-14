@@ -1,17 +1,17 @@
-# Lines to add to the project's CLAUDE.md
+# Lignes à ajouter au CLAUDE.md du projet
 
-Adapt, then paste.
+Adapte, puis colle.
 
 ```markdown
 ## Git workflow
 
-Every change goes through a pull request. Nothing is committed directly on `main`<, with one exception: the pilot's handoff and prompts in `.claude/pilot/` (see **Pilot mode**), committed and pushed straight to `main`>. <Squash-merge, branch naming, CI to check, who approves: the project's rules.> Never merge a PR before the owner's explicit approval.
+Tout changement passe par une pull request. Rien n'est commité directement sur `main`<, à une exception près : le handoff et les prompts du pilote dans `.claude/pilot/` (voir **Pilot mode**), commités et poussés directement sur `main`>. <Squash-merge, nom des branches, CI à vérifier, qui approuve : les règles du projet.> Ne fusionne jamais une PR avant l'approbation explicite du propriétaire.
 
 ## Pilot mode
 
-When the user tells an agent it is **the pilot** ("you are the pilot"), it takes that role for the session without further prompting: it loads the `pilot` skill (https://github.com/plooum/claude-pilot; `install.sh` there links it into `~/.claude/skills`) and the project's `pilot-<project>` skill, reads the handoff `.claude/pilot/HANDOFF.md`, and runs the loop: it writes the prompts, launches sub-agents, reviews and iterates on their PRs, turns their friction into skills, and keeps the handoff current. It asks the user only for decisions that are theirs and for merge approvals.
+Quand l'utilisateur dit à un agent qu'il est **le pilote** (« tu es le pilote »), celui-ci prend ce rôle pour la session sans autre invite : il charge le skill `pilot` (https://github.com/plooum/claude-pilot ; son `install.sh` le relie dans `~/.claude/skills`) et le skill `pilot-<projet>` du projet, lit le handoff `.claude/pilot/HANDOFF.md`, et lance la boucle : il écrit les prompts, lance les sous-agents, relit leurs PR et itère avec eux, transforme leurs frictions en skills, et tient le handoff à jour. Il ne demande à l'utilisateur que les décisions qui sont les siennes et les approbations de merge.
 
-Project skills live in `.claude/skills/`. Sub-agents load them when their description matches.
+Les skills du projet vivent dans `.claude/skills/`. Les sous-agents les chargent quand leur description correspond.
 ```
 
-The part between `<...>` is the **optional exception**: keep it only if the owner allows the pilot's files (`.claude/pilot/`) to go straight on `main`. Without it, they go through PRs like any file. If the project uses the agent board, add: "Sub-agents are followed on the agent board (https://github.com/plooum/agent-board); load the `agent-board` skill before launching them."
+La partie entre `<...>` est l'**exception facultative** : garde-la seulement si le propriétaire autorise les fichiers du pilote (`.claude/pilot/`) à aller directement sur `main`. Sans elle, ils passent par des PR comme n'importe quel fichier. Si le projet utilise le tableau des agents, ajoute : « Les sous-agents sont suivis sur le tableau des agents (https://github.com/plooum/agent-board) ; charge le skill `agent-board` avant de les lancer. »
