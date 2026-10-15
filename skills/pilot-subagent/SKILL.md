@@ -32,7 +32,7 @@ Chaque refus coûte un aller-retour.
 
 L'utilisateur trouve une longue boucle coûteuse.
 - Lis seulement les sections que le prompt nomme (grep, puis lis autour) ; ne lis pas un gros fichier en entier ni un skill dont tu n'as pas besoin.
-- Pendant que tu travailles, lance seulement le test sur lequel tu es (`--only` ou l'équivalent) ; lance les suites complètes que le prompt liste **une seule fois**, à la fin. Lance exactement les tests que le prompt liste, rien de plus.
+- Pendant que tu travailles, lance seulement le test sur lequel tu es (`--only` ou l'équivalent) ; lance les suites complètes que le prompt liste **une seule fois**, à la fin. Lance exactement les tests que le prompt liste, rien de plus. Jamais toute la suite de non-régression du projet : seulement les tests qui concernent ton changement.
 - Un build par changement que tu veux voir.
 - Des captures d'écran seulement si le prompt en demande ; vérifie le point de vue sur une première capture avant d'en faire une série.
 - **Voie rapide** (le prompt le dit : un correctif d'une fonction) : pas de captures d'écran, le nouveau test plus le test de fumée, un rapport de 5 lignes.
